@@ -1,4 +1,3 @@
-// api/votes.js
 import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
@@ -9,50 +8,69 @@ export default async function handler(req, res) {
         await client.connect();
         const collection = client.db("trumpdown").collection("votes");
 
-        // 设置 CORS
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-        if (req.method === 'OPTIONS') {
-            res.status(200).end();
-            return;
-        }
-
-        // GET 请求处理
+        // GET 请求处理 - 获取投票数据
         if (req.method === 'GET') {
-            const votes = await collection.findOne({ id: 'votes' }) || { 
-                id: 'votes', 
-                positiveVotes: 0, 
-                neutralVotes: 0, 
-                negativeVotes: 0 
-            };
-            res.status(200).json(votes);
-            return;
-        }
-
-        // POST 请求处理
-        if (req.method === 'POST') {
-            const { choice } = req.body;
-            if (['positive', 'neutral', 'negative'].includes(choice)) {
-                const voteField = `${choice}Votes`;
-                const update = { $inc: { [voteField]: 1 } };
-                const result = await collection.findOneAndUpdate(
-                    { id: 'votes' },
-                    update,
-                    { upsert: true, returnDocument: 'after' }
-                );
-                res.status(200).json(result.value);
-                return;
+            // 尝试获取现有投票记录
+            let votes = await collection.findOne({ id: 'votes' });
+            
+            // 如果没有投票记录，创建一个新的
+            if (!votes) {
+                votes = {
+                    id: 'votes',
+                    positiveVotes: 0,
+                    neutralVotes: 0,
+                    negativeVotes: 0,
+                    createdAt: new Date(),
+                };
+                await collection.insertOne(votes);
             }
-            res.status(400).json({ error: 'Invalid vote choice' });
-            return;
+            
+            return res.status(200).json(votes);
         }
 
-        res.status(405).json({ error: 'Method not allowed' });
+        // POST 请求处理 - 更新投票
+        if (req.method === 'POST') {
+            const { type } = req.body;
+            
+            // 验证投票类型
+            if (!['positive', 'neutral', 'negative'].includes(type)) {
+                return res.status(400).json({ error: 'Invalid vote type' });
+            }
+
+            // 构建更新查询
+            const updateField = `${type}Votes`;
+            
+            // 使用 upsert 确保文档存在
+            const result = await collection.findOneAndUpdate(
+                { id: 'votes' },
+                { 
+                    $inc: { [updateField]: 1 },
+                    $setOnInsert: {
+                        positiveVotes: type === 'positive' ? 1 : 0,
+                        neutralVotes: type === 'neutral' ? 1 : 0,
+                        negativeVotes: type === 'negative' ? 1 : 0,
+                        createdAt: new Date()
+                    }
+                },
+                { 
+                    upsert: true,
+                    returnDocument: 'after'
+                }
+            );
+
+            return res.status(200).json(result.value);
+        }
+
+        // 其他请求方法
+        return res.status(405).json({ error: 'Method not allowed' });
+
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ error: 'Database error' });
+        console.error('Database error:', error);
+        return res.status(500).json({ 
+            error: 'Database error',
+            message: error.message,
+            timestamp: new Date().toISOString()
+        });
     } finally {
         await client.close();
     }
