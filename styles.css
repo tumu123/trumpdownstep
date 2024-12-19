@@ -1,0 +1,236 @@
+/* Global Settings */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background-color: #f4f4f4;
+    font-size: 16px;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 80%;
+    max-width: 1200px;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* Module Background */
+.module {
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Divider Between Modules */
+.module + .module {
+    margin-top: 20px;
+}
+
+.module-header {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+}
+
+/* Countdown Section */
+.countdown {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 30px;
+    font-weight: bold;
+    color: #E74C3C;
+}
+
+.countdown .countdown-item {
+    text-align: center;
+}
+
+.countdown .countdown-item span {
+    display: block;
+    font-size: 16px;
+    color: #555;
+}
+
+/* Event Background Section */
+.event-background {
+    background-image: url('https://www.example.com/your-background-image.jpg'); /* Replace with actual background image */
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    text-align: center;
+    padding: 40px 20px;
+    border-radius: 8px;
+}
+
+.event-background h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.event-background p {
+    font-size: 18px;
+}
+
+/* Voting Section */
+.vote-section {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+flex-direction: column;
+}
+
+
+
+
+
+.vote-section h2 {
+   text-align: left;  /* 可选：将标题居中 */
+    margin-bottom: 10px; /* 为标题和按钮之间增加间距 */
+}
+
+
+.button-container {
+   display: block;      /* Make the button container a block element, forcing buttons to be in another line */
+    text-align: center;  /* Center buttons horizontally */
+   
+}
+
+
+
+
+
+
+
+
+
+
+.vote-section button {
+    padding: 15px 30px;
+    font-size: 18px;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.vote-section button:hover {
+    background-color: #2980b9;
+}
+
+.vote-section button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Voting Results Section */
+.vote-results {
+    display: flex;
+    justify-content: space-around;
+    font-size: 18px;
+}
+
+.vote-results div {
+    text-align: center;
+    padding: 20px;
+    background-color: #ecf0f1;
+    border-radius: 8px;
+    width: 25%;
+}
+
+.vote-results div span {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    color: #2980b9;
+}
+
+.vote-results div p {
+    font-size: 16px;
+    color: #555;
+}
+
+/* About Section */
+.intro {
+    background-color: #fafafa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.intro h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.intro p {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.6;
+}
+
+/* Privacy Policy and Social Share Buttons */
+.privacy-social {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.privacy-social .privacy {
+    font-size: 14px;
+    color: #777;
+    margin-bottom: 10px;
+}
+
+.privacy-social .social-buttons {
+    display: flex;
+    gap: 15px; /* Increased spacing between buttons */
+}
+
+.privacy-social .social-buttons a {
+    display: inline-block;
+    padding: 15px;
+    background: linear-gradient(145deg, #3498db, #2980b9); /* Gradient background */
+    color: #fff;
+    border-radius: 50%;
+    font-size: 18px;
+    text-align: center;
+    width: 50px;
+    height: 50px;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1), -2px -2px 6px rgba(255, 255, 255, 0.5); /* Subtle shadow effect */
+    transition: all 0.3s ease; /* Smooth transition effect */
+    cursor: pointer;
+}
+
+.privacy-social .social-buttons a:hover {
+    background: linear-gradient(145deg, #2980b9, #3498db); /* Reverse gradient on hover */
+    transform: scale(1.1); /* Slightly enlarge on hover */
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2), -4px -4px 8px rgba(255, 255, 255, 0.6); /* Enhance shadow on hover */
+}
+
+.privacy-social .social-buttons a:active {
+    transform: scale(1); /* Reset size when clicked */
+    box-shadow: none; /* Remove shadow when clicked */
+}
+
