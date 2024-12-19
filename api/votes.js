@@ -7,7 +7,7 @@ const client = new MongoClient(uri);
 export default async function handler(req, res) {
     try {
         await client.connect();
-        const collection = client.db("trumpdown").collection("votes");
+        const collection = client.db("liuliu").collection("votes");
 
         // 设置 CORS
         res.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,16 +19,24 @@ export default async function handler(req, res) {
             return;
         }
 
+        // GET 请求处理
         if (req.method === 'GET') {
-            const votes = await collection.findOne({ id: 'votes' }) || { id: 'votes', yes: 0, no: 0 };
+            const votes = await collection.findOne({ id: 'votes' }) || { 
+                id: 'votes', 
+                positiveVotes: 0, 
+                neutralVotes: 0, 
+                negativeVotes: 0 
+            };
             res.status(200).json(votes);
             return;
         }
 
+        // POST 请求处理
         if (req.method === 'POST') {
-            const { vote } = req.body;
-            if (vote === 'yes' || vote === 'no') {
-                const update = { $inc: { [vote]: 1 } };
+            const { choice } = req.body;
+            if (['positive', 'neutral', 'negative'].includes(choice)) {
+                const voteField = `${choice}Votes`;
+                const update = { $inc: { [voteField]: 1 } };
                 const result = await collection.findOneAndUpdate(
                     { id: 'votes' },
                     update,
@@ -37,7 +45,7 @@ export default async function handler(req, res) {
                 res.status(200).json(result.value);
                 return;
             }
-            res.status(400).json({ error: 'Invalid vote' });
+            res.status(400).json({ error: 'Invalid vote choice' });
             return;
         }
 
