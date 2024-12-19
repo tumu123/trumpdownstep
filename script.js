@@ -1,3 +1,6 @@
+// 在文件最开始添加（STORAGE_KEYS 常量之前）
+const API_BASE_URL = 'https://trumpdownstep2.vercel.app/';  // 替换为你的 Vercel URL
+
 // 存储相关的常量
 const STORAGE_KEYS = {
     VOTES: 'liuliu_votes',
@@ -106,7 +109,7 @@ async function vote(choice) {
     }
 
     try {
-        const response = await fetch('/api/votes', {
+        const response = await fetch('${API_BASE_URL}/api/votes',  {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -150,7 +153,7 @@ async function vote(choice) {
 // 与服务器同步数据
 async function syncWithServer() {
     try {
-        const response = await fetch('/api/votes');
+        const response = await fetch(`${API_BASE_URL}/api/votes`);
         if (response.ok) {
             const serverVotes = await response.json();
             voteData = serverVotes;
