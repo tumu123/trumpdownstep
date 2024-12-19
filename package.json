@@ -1,0 +1,13 @@
+{
+  "name": "trumpdownstep",
+  "version": "1.0.0",
+  "description": "LiuLiu's Departure Countdown",
+  "scripts": {
+    "start": "serve",
+    "build": "echo 'No build required'"
+  },
+  "author": "tumu123",
+  "dependencies": {
+    "serve": "^14.0.0"
+  }
+}
