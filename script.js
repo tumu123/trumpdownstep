@@ -6,7 +6,7 @@ const STORAGE_KEYS = {
 };
 
 // 设置倒计时目标时间
-const targetDateUTC = new Date('2024-12-22T05:09:22Z');
+const targetDateUTC = new Date('2029-01-20T17:00:00Z');
         document.addEventListener('DOMContentLoaded', function() {
             updateCountdown();
             setInterval(updateCountdown, 1000);
