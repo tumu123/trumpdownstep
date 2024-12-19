@@ -4,43 +4,36 @@ const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
 
 export default async function handler(req, res) {
+    let mongoClient = null;
     try {
-        await client.connect();
+        mongoClient = await client.connect();
         const collection = client.db("trumpdown").collection("votes");
+        console.log('MongoDB connected successfully');
 
-        // GET 请求处理 - 获取投票数据
+        // GET请求 - 获取投票数据
         if (req.method === 'GET') {
-            // 尝试获取现有投票记录
-            let votes = await collection.findOne({ id: 'votes' });
-            
-            // 如果没有投票记录，创建一个新的
-            if (!votes) {
-                votes = {
-                    id: 'votes',
-                    positiveVotes: 0,
-                    neutralVotes: 0,
-                    negativeVotes: 0,
-                    createdAt: new Date(),
-                };
-                await collection.insertOne(votes);
-            }
-            
+            const votes = await collection.findOne({ id: 'votes' }) || {
+                id: 'votes',
+                positiveVotes: 0,
+                neutralVotes: 0,
+                negativeVotes: 0,
+                createdAt: new Date()
+            };
+            console.log('GET request - Current votes:', votes);
             return res.status(200).json(votes);
         }
 
-        // POST 请求处理 - 更新投票
+        // POST请求 - 提交投票
         if (req.method === 'POST') {
             const { type } = req.body;
-            
-            // 验证投票类型
+            console.log('Received vote type:', type);
+
             if (!['positive', 'neutral', 'negative'].includes(type)) {
+                console.log('Invalid vote type:', type);
                 return res.status(400).json({ error: 'Invalid vote type' });
             }
 
-            // 构建更新查询
             const updateField = `${type}Votes`;
-            
-            // 使用 upsert 确保文档存在
             const result = await collection.findOneAndUpdate(
                 { id: 'votes' },
                 { 
@@ -53,25 +46,26 @@ export default async function handler(req, res) {
                     }
                 },
                 { 
-                    upsert: true,
-                    returnDocument: 'after'
+                    returnDocument: 'after',
+                    upsert: true 
                 }
             );
 
+            console.log('Vote updated successfully:', result.value);
             return res.status(200).json(result.value);
         }
 
-        // 其他请求方法
         return res.status(405).json({ error: 'Method not allowed' });
 
     } catch (error) {
-        console.error('Database error:', error);
+        console.error('Server error:', error);
         return res.status(500).json({ 
             error: 'Database error',
-            message: error.message,
-            timestamp: new Date().toISOString()
+            message: error.message 
         });
     } finally {
-        await client.close();
+        if (mongoClient) {
+            await mongoClient.close();
+        }
     }
 }
