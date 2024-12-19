@@ -6,8 +6,11 @@ const STORAGE_KEYS = {
 };
 
 // 设置倒计时目标时间
-const targetDateUTC = new Date('2024-12-19T05:35:11Z');
-
+const targetDateUTC = new Date('2024-12-22T05:09:22Z');
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        });
 // 初始化投票数据
 let voteData = {
     positiveVotes: 0,
