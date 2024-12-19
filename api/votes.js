@@ -1,46 +1,36 @@
-// /api/votes.js
+// api/votes.js
 let votes = {
-    positiveVotes: 0,
-    neutralVotes: 0,
-    negativeVotes: 0
+  yes: 0,
+  no: 0
 };
 
 export default function handler(req, res) {
-    // 允许跨域请求
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // 启用 CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'GET') {
-        // 返回当前投票数据
-        res.status(200).json(votes);
-    } 
-    else if (req.method === 'POST') {
-        const { choice } = req.body;
-        
-        // 更新投票数据
-        if (choice) {
-            switch(choice) {
-                case 'positive':
-                    votes.positiveVotes++;
-                    break;
-                case 'neutral':
-                    votes.neutralVotes++;
-                    break;
-                case 'negative':
-                    votes.negativeVotes++;
-                    break;
-            }
-        }
-        
-        // 返回更新后的数据
-        res.status(200).json(votes);
+  // 处理 OPTIONS 请求（预检请求）
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method === 'GET') {
+    res.status(200).json(votes);
+    return;
+  }
+
+  if (req.method === 'POST') {
+    const { vote } = req.body;
+    if (vote === 'yes' || vote === 'no') {
+      votes[vote]++;
+      res.status(200).json(votes);
+      return;
     }
-    else if (req.method === 'OPTIONS') {
-        // 处理预检请求
-        res.status(200).end();
-    }
-    else {
-        res.status(405).end();
-    }
+    res.status(400).json({ error: 'Invalid vote' });
+    return;
+  }
+
+  res.status(405).json({ error: 'Method not allowed' });
 }
