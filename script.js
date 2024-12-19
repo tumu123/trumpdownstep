@@ -1,25 +1,23 @@
 // 全局变量
 const TRUMP_END_DATE = new Date('2029-01-20T17:00:00Z');
 let hasVoted = false;
+let voteData = {
+    positiveVotes: 0,
+    neutralVotes: 0,
+    negativeVotes: 0
+};
 
-// 当文档加载完成后执行
+// 初始化
 document.addEventListener('DOMContentLoaded', function() {
-    // 初始化
     initializeApp();
 });
 
-// 应用初始化
 async function initializeApp() {
-    // 检查是否已经投票
     checkVotingStatus();
-    // 开始倒计时
     startCountdown();
-    // 获取初始投票数据
-    await fetchInitialVotes();
-    // 设置实时更新
-    setupRealtimeUpdates();
-    // 设置投票按钮
+    await fetchVotes(); // 初始获取投票数据
     setupVoteButtons();
+    setupAutoRefresh();
 }
 
 // 倒计时功能
@@ -28,68 +26,44 @@ function startCountdown() {
         const now = new Date();
         const distance = TRUMP_END_DATE - now;
 
-        // 计算天、小时、分钟和秒
         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
         const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-        // 更新倒计时显示
-        document.getElementById('countdown').innerHTML = 
-            `${days}天 ${hours}小时 ${minutes}分钟 ${seconds}秒`;
-
-        // 如果倒计时结束
-        if (distance < 0) {
-            clearInterval(countdownInterval);
-            document.getElementById('countdown').innerHTML = "倒计时结束！";
+        const countdownElement = document.getElementById('countdown');
+        if (countdownElement) {
+            countdownElement.textContent = `${days}天 ${hours}小时 ${minutes}分钟 ${seconds}秒`;
         }
     }
 
-    // 立即更新一次
     updateCountdown();
-    // 每秒更新一次
-    const countdownInterval = setInterval(updateCountdown, 1000);
+    setInterval(updateCountdown, 1000);
 }
 
-// 检查投票状态
+// 检查是否已投票
 function checkVotingStatus() {
-    const voted = localStorage.getItem('hasVoted');
-    if (voted) {
-        hasVoted = true;
+    hasVoted = localStorage.getItem('hasVoted') === 'true';
+    if (hasVoted) {
         disableVoteButtons();
     }
 }
 
-// 禁用投票按钮
-function disableVoteButtons() {
-    const buttons = document.querySelectorAll('.vote-button');
-    buttons.forEach(button => {
-        button.disabled = true;
-        button.classList.add('voted');
-    });
-    document.getElementById('voteMessage').textContent = '您已经投过票了';
-}
-
 // 设置投票按钮
 function setupVoteButtons() {
-    const buttons = {
-        'positiveBtn': 'positive',
-        'neutralBtn': 'neutral',
-        'negativeBtn': 'negative'
-    };
-
-    Object.entries(buttons).forEach(([btnId, voteType]) => {
-        const button = document.getElementById(btnId);
+    const voteTypes = ['positive', 'neutral', 'negative'];
+    voteTypes.forEach(type => {
+        const button = document.getElementById(`${type}Btn`);
         if (button) {
-            button.addEventListener('click', () => submitVote(voteType));
+            button.addEventListener('click', () => handleVote(type));
         }
     });
 }
 
-// 提交投票
-async function submitVote(type) {
+// 处理投票
+async function handleVote(type) {
     if (hasVoted) {
-        alert('您已经投过票了！');
+        showMessage('您已经投过票了', 'warning');
         return;
     }
 
@@ -107,91 +81,126 @@ async function submitVote(type) {
         }
 
         const data = await response.json();
-        updateVoteCounts(data);
+        
+        // 更新本地数据
+        voteData = data;
+        updateDisplay();
         
         // 标记已投票
         hasVoted = true;
         localStorage.setItem('hasVoted', 'true');
+        
+        // 禁用按钮
         disableVoteButtons();
-        showVoteSuccess();
+        
+        // 显示成功消息
+        showMessage('投票成功！', 'success');
 
     } catch (error) {
-        console.error('投票错误:', error);
-        alert('投票失败，请稍后重试');
+        console.error('Vote error:', error);
+        showMessage('投票失败，请稍后重试', 'error');
     }
 }
 
-// 获取初始投票数据
-async function fetchInitialVotes() {
+// 获取投票数据
+async function fetchVotes() {
     try {
         const response = await fetch('/api/votes');
         if (!response.ok) {
-            throw new Error('获取投票数据失败');
+            throw new Error('Failed to fetch votes');
         }
         const data = await response.json();
-        updateVoteCounts(data);
+        voteData = data;
+        updateDisplay();
     } catch (error) {
-        console.error('获取投票数据错误:', error);
+        console.error('Error fetching votes:', error);
+        showMessage('获取投票数据失败', 'error');
     }
 }
 
-// 更新投票计数
-function updateVoteCounts(data) {
-    const total = data.positiveVotes + data.neutralVotes + data.negativeVotes;
+// 更新显示
+function updateDisplay() {
+    const total = voteData.positiveVotes + voteData.neutralVotes + voteData.negativeVotes;
     
-    // 更新数字
-    document.getElementById('positiveCount').textContent = data.positiveVotes;
-    document.getElementById('neutralCount').textContent = data.neutralVotes;
-    document.getElementById('negativeCount').textContent = data.negativeVotes;
-
-    // 更新百分比
-    document.getElementById('positivePercentage').textContent = 
-        `${((data.positiveVotes / total) * 100).toFixed(1)}%`;
-    document.getElementById('neutralPercentage').textContent = 
-        `${((data.neutralVotes / total) * 100).toFixed(1)}%`;
-    document.getElementById('negativePercentage').textContent = 
-        `${((data.negativeVotes / total) * 100).toFixed(1)}%`;
+    // 更新计数
+    updateCount('positive', voteData.positiveVotes, total);
+    updateCount('neutral', voteData.neutralVotes, total);
+    updateCount('negative', voteData.negativeVotes, total);
 }
 
-// 设置实时更新
-function setupRealtimeUpdates() {
-    // 每30秒刷新一次数据
-    setInterval(fetchInitialVotes, 30000);
+// 更新单个计数和百分比
+function updateCount(type, count, total) {
+    const countElement = document.getElementById(`${type}Count`);
+    const percentElement = document.getElementById(`${type}Percentage`);
+    
+    if (countElement) {
+        countElement.textContent = count;
+    }
+    
+    if (percentElement) {
+        const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+        percentElement.textContent = `${percentage}%`;
+    }
 }
 
-// 显示投票成功消息
-function showVoteSuccess() {
-    const successMessage = document.createElement('div');
-    successMessage.textContent = '投票成功！';
-    successMessage.style.cssText = `
+// 禁用投票按钮
+function disableVoteButtons() {
+    const buttons = document.querySelectorAll('.vote-button');
+    buttons.forEach(button => {
+        button.disabled = true;
+        button.classList.add('voted');
+    });
+}
+
+// 显示消息
+function showMessage(message, type = 'info') {
+    const messageDiv = document.createElement('div');
+    messageDiv.textContent = message;
+    messageDiv.className = `message ${type}`;
+    messageDiv.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background-color: #4CAF50;
-        color: white;
         padding: 10px 20px;
         border-radius: 5px;
-        animation: fadeOut 2s forwards;
         z-index: 1000;
+        animation: fadeOut 2s forwards;
+        background-color: ${type === 'success' ? '#4CAF50' : 
+                          type === 'error' ? '#f44336' : 
+                          type === 'warning' ? '#ff9800' : '#2196F3'};
+        color: white;
     `;
     
-    document.body.appendChild(successMessage);
-    
-    setTimeout(() => {
-        successMessage.remove();
-    }, 2000);
+    document.body.appendChild(messageDiv);
+    setTimeout(() => messageDiv.remove(), 2000);
 }
 
-// 添加必要的 CSS
+// 设置自动刷新
+function setupAutoRefresh() {
+    // 每30秒刷新一次数据
+    setInterval(fetchVotes, 30000);
+}
+
+// 添加样式
 const style = document.createElement('style');
 style.textContent = `
     @keyframes fadeOut {
-        from { opacity: 1; }
-        to { opacity: 0; }
+        0% { opacity: 1; }
+        70% { opacity: 1; }
+        100% { opacity: 0; }
     }
 
     .vote-button {
         transition: all 0.3s ease;
+        margin: 5px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .vote-button:hover:not(.voted) {
+        transform: scale(1.05);
     }
 
     .vote-button.voted {
@@ -199,9 +208,8 @@ style.textContent = `
         cursor: not-allowed;
     }
 
-    #voteMessage {
-        color: #666;
-        font-style: italic;
+    .message {
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
 `;
 document.head.appendChild(style);
