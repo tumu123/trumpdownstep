@@ -1,49 +1,136 @@
-let positiveVotes = 0;
-let neutralVotes = 0;
-let negativeVotes = 0;
-let hasVoted = false;
+// 存储相关的常量
+const STORAGE_KEYS = {
+    VOTES: 'liuliu_votes',
+    USER_VOTE: 'liuliu_user_vote',
+    LAST_UPDATE: 'liuliu_last_update'
+};
 
-// Countdown target date (e.g., January 1, 2024)
-const targetDate = new Date("2024-01-01T00:00:00").getTime();
+// 初始化投票数据
+let voteData = {
+    positiveVotes: 0,
+    neutralVotes: 0,
+    negativeVotes: 0
+};
 
-// Update the countdown timer
-function updateCountdown() {
-    const now = new Date().getTime();
-    const timeLeft = targetDate - now;
+// 初始化用户状态
+let userVoteStatus = {
+    hasVoted: false,
+    choice: null
+};
 
-    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-    document.getElementById("days").innerText = days;
-    document.getElementById("hours").innerText = hours;
-    document.getElementById("minutes").innerText = minutes;
-    document.getElementById("seconds").innerText = seconds;
+// 从本地存储加载数据
+function loadFromLocalStorage() {
+    const savedVotes = localStorage.getItem(STORAGE_KEYS.VOTES);
+    const savedUserVote = localStorage.getItem(STORAGE_KEYS.USER_VOTE);
+    
+    if (savedVotes) {
+        voteData = JSON.parse(savedVotes);
+        updateVoteDisplay();
+    }
+    
+    if (savedUserVote) {
+        userVoteStatus = JSON.parse(savedUserVote);
+        if (userVoteStatus.hasVoted) {
+            disableVoteButtons();
+        }
+    }
 }
 
-// Voting function
-function vote(choice) {
-    if (hasVoted) {
+// 保存数据到本地存储
+function saveToLocalStorage() {
+    localStorage.setItem(STORAGE_KEYS.VOTES, JSON.stringify(voteData));
+    localStorage.setItem(STORAGE_KEYS.USER_VOTE, JSON.stringify(userVoteStatus));
+    localStorage.setItem(STORAGE_KEYS.LAST_UPDATE, new Date().toISOString());
+}
+
+// 更新显示的投票结果
+function updateVoteDisplay() {
+    document.getElementById("positive-votes").innerText = voteData.positiveVotes;
+    document.getElementById("neutral-votes").innerText = voteData.neutralVotes;
+    document.getElementById("negative-votes").innerText = voteData.negativeVotes;
+}
+
+// 禁用投票按钮
+function disableVoteButtons() {
+    const buttons = document.querySelectorAll('.vote-section button');
+    buttons.forEach(button => {
+        button.disabled = true;
+    });
+}
+
+// 投票函数
+async function vote(choice) {
+    if (userVoteStatus.hasVoted) {
         alert("You have already voted!");
         return;
     }
 
-    if (choice === 'positive') {
-        positiveVotes++;
-    } else if (choice === 'neutral') {
-        neutralVotes++;
-    } else if (choice === 'negative') {
-        negativeVotes++;
+    // 更新本地数据
+    switch(choice) {
+        case 'positive':
+            voteData.positiveVotes++;
+            break;
+        case 'neutral':
+            voteData.neutralVotes++;
+            break;
+        case 'negative':
+            voteData.negativeVotes++;
+            break;
     }
 
-    // Update voting results
-    document.getElementById("positive-votes").innerText = positiveVotes;
-    document.getElementById("neutral-votes").innerText = neutralVotes;
-    document.getElementById("negative-votes").innerText = negativeVotes;
+    // 更新用户状态
+    userVoteStatus.hasVoted = true;
+    userVoteStatus.choice = choice;
 
-    hasVoted = true;
+    // 保存到本地存储
+    saveToLocalStorage();
+    
+    // 更新显示
+    updateVoteDisplay();
+    disableVoteButtons();
+
+    // 同步到服务器（后面会实现）
+    try {
+        await syncWithServer();
+    } catch (error) {
+        console.error('Failed to sync with server:', error);
+    }
 }
 
-// Initialize countdown timer
-setInterval(updateCountdown, 1000);
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    loadFromLocalStorage();
+    // 启动定时同步
+    setInterval(syncWithServer, 30000); // 每30秒同步一次
+});
+
+// 在 script.js 中添加
+async function syncWithServer() {
+    try {
+        // 获取服务器数据
+        const response = await fetch('/api/votes');
+        const serverVotes = await response.json();
+        
+        // 如果本地有新投票，发送到服务器
+        if (userVoteStatus.hasVoted && !userVoteStatus.synced) {
+            await fetch('/api/vote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    choice: userVoteStatus.choice
+                })
+            });
+            userVoteStatus.synced = true;
+            saveToLocalStorage();
+        }
+        
+        // 更新本地数据
+        voteData = serverVotes;
+        updateVoteDisplay();
+        
+    } catch (error) {
+        console.error('Sync failed:', error);
+    }
+}
