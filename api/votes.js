@@ -7,7 +7,7 @@ const client = new MongoClient(uri);
 export default async function handler(req, res) {
     try {
         await client.connect();
-        const collection = client.db("liuliu").collection("votes");
+        const collection = client.db("trumpdown").collection("votes");
 
         // 设置 CORS
         res.setHeader('Access-Control-Allow-Origin', '*');
