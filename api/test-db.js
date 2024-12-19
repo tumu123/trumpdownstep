@@ -6,11 +6,11 @@ export default async function handler(req, res) {
     
     try {
         await client.connect();
-        await client.db("liuliu").command({ ping: 1 });
+        await client.db("trumpdown").command({ ping: 1 });
         res.status(200).json({ 
             status: 'success',
             message: 'Successfully connected to MongoDB',
-            database: 'liuliu',
+            database: 'trumpdown',
             timestamp: new Date().toISOString()
         });
     } catch (error) {
