@@ -13,8 +13,8 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Could not determine client IP' });
         }
 
-        // 使用 HTTPS 调用 IP-API
-        const response = await fetch(`https://pro.ip-api.com/json/${clientIP}?key=${process.env.IP_API_KEY || ''}`, {
+        // 使用 IP-API 免费版本
+        const response = await fetch(`http://ip-api.com/json/${clientIP}`, {
             headers: {
                 'User-Agent': 'TrumpDownStep/1.0'
             },
