@@ -353,9 +353,10 @@ button:disabled {
 /* Footer Styles */
 .footer {
     margin-top: 40px;
-    padding: 20px 0;
-    background-color: #f8f9fa;
-    border-top: 1px solid #eaeaea;
+    padding: 25px 20px;
+    background-color: #2c3e50;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .footer-content {
@@ -368,49 +369,72 @@ button:disabled {
 .footer-links {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
 }
 
 .footer-link {
-    color: #666;
+    color: #fff;
     text-decoration: none;
     font-size: 14px;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    padding-bottom: 2px;
 }
 
 .footer-link:hover {
-    color: #2980b9;
+    color: #3498db;
+}
+
+.footer-link:after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    bottom: 0;
+    left: 50%;
+    background-color: #3498db;
+    transition: all 0.3s ease;
+}
+
+.footer-link:hover:after {
+    width: 100%;
+    left: 0;
 }
 
 .separator {
-    color: #ccc;
+    color: rgba(255, 255, 255, 0.3);
     font-size: 14px;
 }
 
 .footer-copyright {
     text-align: center;
+    margin-top: 5px;
 }
 
 .footer-copyright p {
-    color: #888;
+    color: rgba(255, 255, 255, 0.7);
     font-size: 13px;
     margin: 0;
 }
 
-/* 响应式设计 */
+/* 响应式设计优化 */
 @media (max-width: 768px) {
     .footer {
         margin-top: 30px;
-        padding: 15px 0;
+        padding: 20px 15px;
     }
 
     .footer-links {
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
     }
 
     .separator {
         display: none;
+    }
+
+    .footer-copyright {
+        margin-top: 15px;
     }
 }
 
