@@ -4,11 +4,27 @@ export default async function handler(req, res) {
     }
 
     try {
+        // 获取客户端 IP
         const clientIP = req.headers['x-forwarded-for']?.split(',')[0] || 
+                        req.headers['x-real-ip'] ||
                         req.socket.remoteAddress;
 
-        // 调用 IP-API.com
-        const response = await fetch(`http://ip-api.com/json/${clientIP}`);
+        if (!clientIP) {
+            return res.status(400).json({ error: 'Could not determine client IP' });
+        }
+
+        // 使用 HTTPS 调用 IP-API
+        const response = await fetch(`https://pro.ip-api.com/json/${clientIP}?key=${process.env.IP_API_KEY || ''}`, {
+            headers: {
+                'User-Agent': 'TrumpDownStep/1.0'
+            },
+            timeout: 5000 // 5 秒超时
+        });
+
+        if (!response.ok) {
+            throw new Error(`IP API responded with status: ${response.status}`);
+        }
+
         const data = await response.json();
 
         if (data.status === 'success') {
@@ -20,10 +36,16 @@ export default async function handler(req, res) {
                 region: data.region
             });
         } else {
-            return res.status(400).json({ error: 'Could not determine location' });
+            return res.status(400).json({ 
+                error: 'Location lookup failed',
+                message: data.message || 'Unknown error'
+            });
         }
     } catch (error) {
         console.error('IP API error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ 
+            error: 'Internal server error',
+            message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 }
