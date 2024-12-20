@@ -1,87 +1,53 @@
-// 在文件最开始添加（STORAGE_KEYS 常量之前）
-const API_BASE_URL = 'https://trumpdownstep2.vercel.app/';  // 替换为你的 Vercel URL
+// API 基础URL
+const API_BASE_URL = 'https://trumpdownstep2.vercel.app';
 
-// 存储相关的常量
-const STORAGE_KEYS = {
-    VOTES: 'liuliu_votes',
-    USER_VOTE: 'liuliu_user_vote',
-    LAST_UPDATE: 'liuliu_last_update'
+// 目标日期（美国东部时间2029年1月20日中午12:00）
+const TARGET_DATE_US = new Date('2029-01-20T17:00:00Z'); // UTC时间
+
+// 存储用户信息
+let userInfo = {
+    ip: null,
+    timezone: null,
+    hasVoted: false
 };
 
-// 设置倒计时目标时间
-const targetDateUTC = new Date('2029-01-20T17:00:00Z');
-        document.addEventListener('DOMContentLoaded', function() {
-            updateCountdown();
-            setInterval(updateCountdown, 1000);
-        });
-// 初始化投票数据
+// 存储投票数据
 let voteData = {
     positiveVotes: 0,
     neutralVotes: 0,
     negativeVotes: 0
 };
 
-// 初始化用户状态
-let userVoteStatus = {
-    hasVoted: false,
-    choice: null,
-    timestamp: null
-};
-
-// 从本地存储加载数据
-function loadFromLocalStorage() {
-    const savedVotes = localStorage.getItem(STORAGE_KEYS.VOTES);
-    const savedUserVote = localStorage.getItem(STORAGE_KEYS.USER_VOTE);
-    
-    if (savedUserVote) {
-        userVoteStatus = JSON.parse(savedUserVote);
-        if (userVoteStatus.hasVoted) {
-            disableVoteButtons();
-        }
-    }
-
-    // 即使有本地数据，也尝试从服务器获取最新数据
-    syncWithServer();
-}
-
-// 保存数据到本地存储
-function saveToLocalStorage() {
-    localStorage.setItem(STORAGE_KEYS.USER_VOTE, JSON.stringify(userVoteStatus));
-    localStorage.setItem(STORAGE_KEYS.LAST_UPDATE, new Date().toISOString());
-}
-
-// 更新显示的投票结果
-function updateVoteDisplay() {
-    document.getElementById("positive-votes").innerText = voteData.positiveVotes;
-    document.getElementById("neutral-votes").innerText = voteData.neutralVotes;
-    document.getElementById("negative-votes").innerText = voteData.negativeVotes;
-
-    // 更新投票状态显示
-    const voteStatusElement = document.getElementById('voteStatus');
-    if (voteStatusElement) {
-        if (userVoteStatus.hasVoted) {
-            voteStatusElement.textContent = `You voted "${userVoteStatus.choice}" on ${new Date(userVoteStatus.timestamp).toLocaleString()}`;
-            voteStatusElement.style.color = '#2ecc71';
+// 获取用户时区信息
+async function getUserTimezone() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/timezone`);
+        if (response.ok) {
+            userInfo = await response.json();
+            updateCountdownWithTimezone();
         } else {
-            voteStatusElement.textContent = 'You haven\'t voted yet';
-            voteStatusElement.style.color = '#666';
+            console.error('Failed to get timezone info');
+            // 如果获取失败，使用默认UTC时间
+            updateCountdown();
         }
+    } catch (error) {
+        console.error('Timezone API error:', error);
+        updateCountdown();
     }
 }
 
-// 禁用投票按钮
-function disableVoteButtons() {
-    const buttons = document.querySelectorAll('.vote-section button');
-    buttons.forEach(button => {
-        button.disabled = true;
-    });
+// 根据用户时区更新倒计时
+function updateCountdownWithTimezone() {
+    const currentDate = new Date();
+    // 计算时差
+    const userOffset = userInfo.offset || 0;
+    const timeDifference = TARGET_DATE_US.getTime() - currentDate.getTime();
+    
+    updateCountdownDisplay(timeDifference);
 }
 
 // 更新倒计时显示
-function updateCountdown() {
-    const currentDate = new Date();
-    const timeDifference = targetDateUTC - currentDate;
-
+function updateCountdownDisplay(timeDifference) {
     if (timeDifference <= 0) {
         document.querySelectorAll('.countdown-item span:first-child').forEach(element => {
             element.textContent = '00';
@@ -101,85 +67,103 @@ function updateCountdown() {
     document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
 }
 
-// 投票函数
+// 投票功能
 async function vote(choice) {
-    if (userVoteStatus.hasVoted) {
-        alert("You have already voted!");
+    if (!userInfo.ip) {
+        alert("Please wait while we get your location information");
         return;
     }
 
     try {
-        const response = await fetch('${API_BASE_URL}/api/votes',  {
+        const response = await fetch(`${API_BASE_URL}/api/votes`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ choice })
+            body: JSON.stringify({
+                choice,
+                voterIP: userInfo.ip
+            })
         });
 
-        if (response.ok) {
-            const updatedVotes = await response.json();
-            voteData = updatedVotes;
-            
-            // 更新用户状态
-            userVoteStatus = {
-                hasVoted: true,
-                choice: choice,
-                timestamp: new Date().toISOString()
-            };
+        const data = await response.json();
 
-            // 保存到本地存储
-            saveToLocalStorage();
-            
-            // 更新显示
+        if (response.ok) {
+            voteData = data;
+            userInfo.hasVoted = true;
             updateVoteDisplay();
             disableVoteButtons();
-
-            // 显示成功消息
-            const voteStatusElement = document.getElementById('voteStatus');
-            if (voteStatusElement) {
-                voteStatusElement.textContent = `Thank you for voting "${choice}"!`;
-                voteStatusElement.style.color = '#2ecc71';
-            }
+            showVoteMessage('Thank you for voting!', 'success');
         } else {
-            throw new Error('Voting failed');
+            if (data.error === 'You have already voted') {
+                showVoteMessage('You have already voted!', 'warning');
+                disableVoteButtons();
+            } else {
+                throw new Error(data.error);
+            }
         }
     } catch (error) {
-        console.error('Voting failed:', error);
-        alert('Failed to submit vote. Please try again later.');
+        console.error('Voting error:', error);
+        showVoteMessage('Failed to submit vote. Please try again later.', 'error');
     }
 }
 
-// 与服务器同步数据
-async function syncWithServer() {
+// 更新投票显示
+function updateVoteDisplay() {
+    document.getElementById('positive-votes').textContent = voteData.positiveVotes || 0;
+    document.getElementById('neutral-votes').textContent = voteData.neutralVotes || 0;
+    document.getElementById('negative-votes').textContent = voteData.negativeVotes || 0;
+}
+
+// 禁用投票按钮
+function disableVoteButtons() {
+    document.querySelectorAll('.vote-section button').forEach(button => {
+        button.disabled = true;
+    });
+}
+
+// 显示投票消息
+function showVoteMessage(message, type) {
+    const voteStatus = document.getElementById('voteStatus');
+    if (voteStatus) {
+        voteStatus.textContent = message;
+        voteStatus.style.color = type === 'success' ? '#2ecc71' : 
+                                type === 'warning' ? '#f1c40f' : '#e74c3c';
+    }
+}
+
+// 获取实时投票数据
+async function getVoteResults() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/votes`);
         if (response.ok) {
-            const serverVotes = await response.json();
-            voteData = serverVotes;
+            voteData = await response.json();
             updateVoteDisplay();
-            
-            // 更新同步状态
-            const syncStatusElement = document.getElementById('syncStatus');
-            if (syncStatusElement) {
-                syncStatusElement.textContent = 'Last synced: ' + new Date().toLocaleTimeString();
-                syncStatusElement.style.color = '#2ecc71';
-            }
         }
     } catch (error) {
-        console.error('Sync failed:', error);
-        const syncStatusElement = document.getElementById('syncStatus');
-        if (syncStatusElement) {
-            syncStatusElement.textContent = 'Sync failed. Using local data.';
-            syncStatusElement.style.color = '#e74c3c';
-        }
+        console.error('Failed to get vote results:', error);
     }
 }
+
+// 初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 获取用户时区信息
+    getUserTimezone();
+    
+    // 开始倒计时
+    setInterval(updateCountdownWithTimezone, 1000);
+    
+    // 获取初始投票数据
+    getVoteResults();
+    
+    // 定期更新投票数据（每30秒）
+    setInterval(getVoteResults, 30000);
+});
 
 // 更新社交分享链接
 function updateShareLinks() {
     const currentUrl = window.location.href;
-    const shareText = "Check out this countdown!";
+    const shareText = "Check out this Trump Departure Countdown!";
     
     const fbShare = document.querySelector('a[title="Share on Facebook"]');
     if (fbShare) {
@@ -197,14 +181,5 @@ function updateShareLinks() {
     }
 }
 
-// 页面加载时初始化
-document.addEventListener('DOMContentLoaded', function() {
-    updateCountdown(); // 立即更新倒计时
-    setInterval(updateCountdown, 1000); // 每秒更新倒计时
-    
-    loadFromLocalStorage(); // 加载保存的数据
-    updateShareLinks(); // 更新分享链接
-    
-    // 每30秒同步一次数据
-    setInterval(syncWithServer, 30000);
-});
+// 在页面加载时更新社交分享链接
+document.addEventListener('DOMContentLoaded', updateShareLinks);
