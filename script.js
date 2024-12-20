@@ -148,6 +148,7 @@ const ShareManager = {
             facebook: document.querySelector('a[title="Share on Facebook"]'),
             twitter: document.querySelector('a[title="Share on Twitter"]'),
             linkedin: document.querySelector('a[title="Share on LinkedIn"]')
+            whatsapp: document.querySelector('a[title="Share on WhatsApp"]')
         };
         
         if (shareLinks.facebook) {
@@ -160,6 +161,9 @@ const ShareManager = {
         
         if (shareLinks.linkedin) {
             shareLinks.linkedin.href = `https://www.linkedin.com/shareArticle?url=${encodeURIComponent(currentUrl)}`;
+        }
+        if (shareLinks.whatsapp) {
+            shareLinks.whatsapp.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + currentUrl)}`;
         }
     }
 };
