@@ -142,15 +142,19 @@ body {
     cursor: not-allowed;
 }
 
-/* Voting Results Section */
+/* 投票结果和社交分享的组合样式 */
+.results-and-share {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* 投票结果样式 */
 .vote-results {
     display: flex;
     justify-content: center;
     gap: 20px;
-    width: 100%;
-    max-width: 800px;
-    margin: 20px auto 0;
-    padding: 20px 0;
 }
 
 .vote-results div {
@@ -160,11 +164,9 @@ body {
     background-color: #ecf0f1;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    min-width: 150px;
-    max-width: 200px;
 }
 
-.vote-results div span {
+.vote-results span {
     display: block;
     font-size: 28px;
     font-weight: bold;
@@ -172,9 +174,77 @@ body {
     margin-bottom: 10px;
 }
 
-.vote-results div p {
+.vote-results p {
     font-size: 14px;
     color: #555;
+}
+
+/* 社交分享按钮容器 */
+.share-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 10px;
+}
+
+/* 左右两组按钮 */
+.share-left, .share-right {
+    display: flex;
+    gap: 15px;
+}
+
+/* 社交分享按钮样式 */
+.share-container a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+/* 各个社交媒体的颜色 */
+.share-container a[title="Share on Facebook"] {
+    background-color: #3b5998;
+}
+
+.share-container a[title="Share on Twitter"] {
+    background-color: #1da1f2;
+}
+
+.share-container a[title="Share on LinkedIn"] {
+    background-color: #0077b5;
+}
+
+.share-container a[title="Share on WhatsApp"] {
+    background-color: #25D366;
+}
+
+/* 悬停效果 */
+.share-container a:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .results-and-share {
+        padding: 15px;
+    }
+
+    .vote-results {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .share-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
 }
 
 /* About Section */
