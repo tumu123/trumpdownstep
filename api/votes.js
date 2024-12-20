@@ -4,68 +4,59 @@ const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
 
 export default async function handler(req, res) {
-    let mongoClient = null;
     try {
-        mongoClient = await client.connect();
-        const collection = client.db("trumpdown").collection("votes");
-        console.log('MongoDB connected successfully');
+        await client.connect();
+        const db = client.db('trumpdown');
+        const collection = db.collection('votes');
 
-        // GET请求 - 获取投票数据
+        // 获取投票结果
         if (req.method === 'GET') {
-            const votes = await collection.findOne({ id: 'votes' }) || {
-                id: 'votes',
+            const results = await collection.findOne({ _id: 'voteResults' });
+            return res.status(200).json(results || {
                 positiveVotes: 0,
                 neutralVotes: 0,
-                negativeVotes: 0,
-                createdAt: new Date()
-            };
-            console.log('GET request - Current votes:', votes);
-            return res.status(200).json(votes);
+                negativeVotes: 0
+            });
         }
 
-        // POST请求 - 提交投票
+        // 处理投票
         if (req.method === 'POST') {
-            const { type } = req.body;
-            console.log('Received vote type:', type);
+            const { choice, voterIP } = req.body;
 
-            if (!['positive', 'neutral', 'negative'].includes(type)) {
-                console.log('Invalid vote type:', type);
-                return res.status(400).json({ error: 'Invalid vote type' });
+            // 检查是否已经投票
+            const existingVote = await collection.findOne({ 
+                _id: `vote_${voterIP}` 
+            });
+
+            if (existingVote) {
+                return res.status(400).json({ error: 'You have already voted' });
             }
 
-            const updateField = `${type}Votes`;
-            const result = await collection.findOneAndUpdate(
-                { id: 'votes' },
-                { 
-                    $inc: { [updateField]: 1 },
-                    $setOnInsert: {
-                        positiveVotes: type === 'positive' ? 1 : 0,
-                        neutralVotes: type === 'neutral' ? 1 : 0,
-                        negativeVotes: type === 'negative' ? 1 : 0,
-                        createdAt: new Date()
-                    }
-                },
-                { 
-                    returnDocument: 'after',
-                    upsert: true 
-                }
+            // 记录投票
+            await collection.insertOne({
+                _id: `vote_${voterIP}`,
+                choice,
+                timestamp: new Date()
+            });
+
+            // 更新投票结果
+            const updateField = `${choice}Votes`;
+            await collection.updateOne(
+                { _id: 'voteResults' },
+                { $inc: { [updateField]: 1 } },
+                { upsert: true }
             );
 
-            console.log('Vote updated successfully:', result.value);
-            return res.status(200).json(result.value);
+            // 返回最新结果
+            const results = await collection.findOne({ _id: 'voteResults' });
+            return res.status(200).json(results);
         }
 
         return res.status(405).json({ error: 'Method not allowed' });
-
     } catch (error) {
-        console.error('Server error:', error);
-        return res.status(500).json({ 
-            error: 'Database error',
-            message: error.message 
-        });
+        console.error('Database error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
     } finally {
-        if (mongoClient) {
-            await mongoClient.close();
-        }
+        await client.close();
     }
 }
