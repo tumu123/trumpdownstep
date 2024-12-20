@@ -1,5 +1,5 @@
 // API 基础URL
-const API_BASE_URL = 'https://trumpdownstep2.vercel.app';
+const API_BASE_URL = window.location.origin;
 
 // 目标日期（UTC时间2029年1月20日17:00:00）
 const TARGET_DATE = new Date('2029-01-20T17:00:00Z');
