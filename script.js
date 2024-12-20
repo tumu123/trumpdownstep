@@ -47,6 +47,7 @@ const CountdownManager = {
 // 投票管理器
 const VoteManager = {
     updateVoteDisplay: (data) => {
+        console.log('Updating vote display with data:', data); // 调试日志
         document.getElementById('positive-votes').textContent = data.positiveVotes || 0;
         document.getElementById('neutral-votes').textContent = data.neutralVotes || 0;
         document.getElementById('negative-votes').textContent = data.negativeVotes || 0;
@@ -69,14 +70,20 @@ const VoteManager = {
 
     getVoteResults: async () => {
         try {
+            console.log('Fetching vote results...'); // 调试日志
             const response = await fetch(`${API_BASE_URL}/api/votes`);
-            if (response.ok) {
-                const data = await response.json();
-                VoteManager.updateVoteDisplay(data);
+            console.log('Response status:', response.status); // 调试日志
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            
+            const data = await response.json();
+            console.log('Received vote data:', data); // 调试日志
+            VoteManager.updateVoteDisplay(data);
         } catch (error) {
-            console.error('Failed to get vote results:', error);
-            VoteManager.showVoteMessage('Failed to load vote results', 'error');
+            console.error('Detailed error:', error);
+            VoteManager.showVoteMessage('Failed to load vote results: ' + error.message, 'error');
         }
     },
 
@@ -88,6 +95,7 @@ const VoteManager = {
         }
 
         try {
+            console.log('Submitting vote:', choice); // 调试日志
             const response = await fetch(`${API_BASE_URL}/api/votes`, {
                 method: 'POST',
                 headers: {
@@ -96,20 +104,37 @@ const VoteManager = {
                 body: JSON.stringify({ choice })
             });
 
-            const data = await response.json();
+            console.log('Vote response status:', response.status); // 调试日志
 
-            if (response.ok) {
-                CookieManager.setVotedCookie();
-                VoteManager.updateVoteDisplay(data);
-                VoteManager.disableVoteButtons();
-                VoteManager.showVoteMessage('Thank you for voting!', 'success');
-            } else {
-                throw new Error(data.error);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to submit vote');
             }
+
+            const data = await response.json();
+            console.log('Vote response data:', data); // 调试日志
+
+            CookieManager.setVotedCookie();
+            VoteManager.updateVoteDisplay(data);
+            VoteManager.disableVoteButtons();
+            VoteManager.showVoteMessage('Thank you for voting!', 'success');
         } catch (error) {
             console.error('Voting error:', error);
-            VoteManager.showVoteMessage('Failed to submit vote. Please try again later.', 'error');
+            VoteManager.showVoteMessage('Failed to submit vote: ' + error.message, 'error');
         }
+    },
+
+    // 添加初始化投票按钮方法
+    initVoteButtons: () => {
+        document.querySelectorAll('.vote-section button').forEach(button => {
+            button.addEventListener('click', function() {
+                const choice = this.getAttribute('data-vote');
+                if (choice) {
+                    console.log('Vote button clicked:', choice); // 调试日志
+                    VoteManager.vote(choice);
+                }
+            });
+        });
     }
 };
 
@@ -141,6 +166,11 @@ const ShareManager = {
 
 // 初始化应用
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing application...'); // 调试日志
+
+    // 初始化投票按钮
+    VoteManager.initVoteButtons();
+    
     // 启动倒计时
     CountdownManager.updateCountdown();
     setInterval(CountdownManager.updateCountdown, 1000);
@@ -159,4 +189,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 设置实时更新投票结果（每30秒更新一次）
     setInterval(VoteManager.getVoteResults, 30000);
+
+    console.log('Application initialized'); // 调试日志
 });
