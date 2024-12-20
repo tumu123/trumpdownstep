@@ -38,15 +38,14 @@
 
         <!-- Voting Section -->
         <div class="module vote-section">
-            <h2>Do you support or oppose LiuLiu?</h2>
-            <div class="button-container">
-                <button onclick="vote('positive')" id="votePositive">Support</button>
-                <button onclick="vote('neutral')" id="voteNeutral">Neutral</button>
-                <button onclick="vote('negative')" id="voteNegative">Oppose</button>
-            </div>
-            <!-- 添加投票状态提示 -->
-            <div id="voteStatus" class="vote-status"></div>
-        </div>
+    <h2>Do you support or oppose LiuLiu?</h2>
+    <div class="button-container">
+        <button data-vote="positive" id="votePositive">Support</button>
+        <button data-vote="neutral" id="voteNeutral">Neutral</button>
+        <button data-vote="negative" id="voteNegative">Oppose</button>
+    </div>
+    <div id="voteStatus" class="vote-status"></div>
+</div>
 
         <!-- Voting Results Section -->
         <div class="module vote-results">
