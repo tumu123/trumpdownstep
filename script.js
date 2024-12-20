@@ -147,7 +147,9 @@ const ShareManager = {
         const shareLinks = {
             facebook: document.querySelector('a[title="Share on Facebook"]'),
             twitter: document.querySelector('a[title="Share on Twitter"]'),
-            linkedin: document.querySelector('a[title="Share on LinkedIn"]')
+            linkedin: document.querySelector('a[title="Share on LinkedIn"]'),
+            // 添加 WhatsApp
+            whatsapp: document.querySelector('a[title="Share on WhatsApp"]')
         };
         
         if (shareLinks.facebook) {
@@ -160,6 +162,11 @@ const ShareManager = {
         
         if (shareLinks.linkedin) {
             shareLinks.linkedin.href = `https://www.linkedin.com/shareArticle?url=${encodeURIComponent(currentUrl)}`;
+        }
+
+        // 添加 WhatsApp 分享链接
+        if (shareLinks.whatsapp) {
+            shareLinks.whatsapp.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + currentUrl)}`;
         }
     }
 };
