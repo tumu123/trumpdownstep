@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiuLiu's Departure Countdown</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Event Background Section -->
+        <div class="module event-background">
+            <h2>LiuLiu's Departure Countdown</h2>
+            <p>The countdown to the historic moment of LiuLiu's departure.</p>
+        </div>
+
+        <!-- Countdown Section -->
+        <div class="module countdown">
+            <div class="countdown-item">
+                <span id="days">0</span>
+                <span>D</span>
+            </div>
+            <div class="countdown-item">
+                <span id="hours">0</span>
+                <span>H</span>
+            </div>
+            <div class="countdown-item">
+                <span id="minutes">0</span>
+                <span>M</span>
+            </div>
+            <div class="countdown-item">
+                <span id="seconds">0</span>
+                <span>S</span>
+            </div>
+        </div>
+
+        <!-- Voting Section -->
+        <div class="module vote-section">
+            <h2>Do you support or oppose LiuLiu?</h2>
+            <div class="button-container">
+                <button onclick="vote('positive')" id="votePositive">Support</button>
+                <button onclick="vote('neutral')" id="voteNeutral">Neutral</button>
+                <button onclick="vote('negative')" id="voteNegative">Oppose</button>
+            </div>
+            <!-- 添加投票状态提示 -->
+            <div id="voteStatus" class="vote-status"></div>
+        </div>
+
+        <!-- Voting Results Section -->
+        <div class="module vote-results">
+            <div>
+                <span id="positive-votes">0</span>
+                <p>Support Votes</p>
+            </div>
+            <div>
+                <span id="neutral-votes">0</span>
+                <p>Neutral Votes</p>
+            </div>
+            <div>
+                <span id="negative-votes">0</span>
+                <p>Oppose Votes</p>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="module intro">
+            <h3>About This Project</h3>
+            <p>This project tracks the countdown to LiuLiu's departure and provides real-time voting to gauge public opinion on the event.</p>
+            <!-- 添加同步状态显示 -->
+            <div id="syncStatus" class="sync-status"></div>
+        </div>
+
+        <!-- Privacy Policy and Social Share Buttons -->
+        <div class="privacy-social">
+            <p class="privacy">Privacy Policy</p>
+            <div class="social-buttons">
+                <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.example.com" target="_blank" title="Share on Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="https://twitter.com/intent/tweet?url=https://www.example.com" target="_blank" title="Share on Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="https://www.linkedin.com/shareArticle?url=https://www.example.com" target="_blank" title="Share on LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加到 body 结束标签前 -->
+    <script src="script.js"></script>
+  
+</body>
+</html>
