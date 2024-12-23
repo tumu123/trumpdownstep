@@ -441,3 +441,93 @@ button:disabled {
 @keyframes spin {
     to { transform: translateY(-50%) rotate(360deg); }
 }
+/* Timeline Styles */
+.timeline {
+    position: relative;
+    padding: 20px 0;
+    margin: 20px 0;
+}
+
+/* 时间轴垂直线 */
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 50px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #3498db;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+    padding-left: 70px;
+}
+
+/* 时间点圆圈 */
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 44px;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid #3498db;
+}
+
+/* 日期样式 */
+.timeline-date {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+/* 内容卡片样式 */
+.timeline-content {
+    background: #fff;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-content h4 {
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+.timeline-content p {
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* 鼠标悬停效果 */
+.timeline-item:hover .timeline-content {
+    transform: translateX(5px);
+    transition: transform 0.3s ease;
+}
+
+.timeline-item:hover::before {
+    background: #3498db;
+    transition: background 0.3s ease;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .timeline::before {
+        left: 30px;
+    }
+    
+    .timeline-item {
+        padding-left: 50px;
+    }
+    
+    .timeline-item::before {
+        left: 24px;
+    }
+}
