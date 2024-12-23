@@ -500,11 +500,7 @@ button:disabled {
     font-size: 18px;
 }
 
-.timeline-content p {
-    color: #666;
-    margin: 0;
-    line-height: 1.5;
-}
+
 
 /* 鼠标悬停效果 */
 .timeline-item:hover .timeline-content {
