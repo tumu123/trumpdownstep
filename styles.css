@@ -487,43 +487,41 @@ button:disabled {
 }
 
 /* 内容卡片样式 */
+/* Timeline Content Styles */
 .timeline-content {
     background: #fff;
     padding: 15px 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* 保持弹性布局实现上下居中 */
+    display: flex;
+    align-items: center; /* 垂直居中 */
+    min-height: 60px; /* 减小最小高度，因为内容变少了 */
 }
 
 .timeline-content h4 {
     color: #2c3e50;
-    margin-bottom: 8px;
-    font-size: 18px;
+    margin: 0; /* 移除所有边距 */
+    font-size: 16px; /* 可以适当调整字体大小 */
+    line-height: 1.4; /* 调整行高 */
 }
 
-
-
-/* 鼠标悬停效果 */
-.timeline-item:hover .timeline-content {
-    transform: translateX(5px);
-    transition: transform 0.3s ease;
+/* 其他相关样式调整 */
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px; /* 稍微减小项目间距 */
+    padding-left: 70px;
+    transition: all 0.3s ease;
 }
 
-.timeline-item:hover::before {
-    background: #3498db;
-    transition: background 0.3s ease;
-}
-
-/* 响应式设计 */
+/* 响应式调整 */
 @media (max-width: 768px) {
-    .timeline::before {
-        left: 30px;
+    .timeline-content {
+        min-height: 50px; /* 移动端进一步减小最小高度 */
+        padding: 12px 15px;
     }
-    
-    .timeline-item {
-        padding-left: 50px;
-    }
-    
-    .timeline-item::before {
-        left: 24px;
+
+    .timeline-content h4 {
+        font-size: 14px; /* 移动端字体稍微小一点 */
     }
 }
